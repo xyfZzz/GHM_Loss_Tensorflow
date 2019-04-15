@@ -30,7 +30,7 @@ class GHMC_Loss:
         tot = max(valid.float().sum().item(), 1.0)
         n = 0  # n valid bins
         for i in range(self.bins):
-            inds = (self.g >= edges[i]) & (self.g < edges[i+1]) & valid#如果维度不完全一致，会broadcast，但是这里作者应该是把它们输入为维度一致的
+            inds = (self.g >= edges[i]) & (self.g < edges[i+1]) & valid
             num_in_bin = inds.sum().item()
             if num_in_bin > 0:
                 if mmt > 0:
