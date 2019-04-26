@@ -130,36 +130,36 @@ class GHMC_Loss:
 
 
 if __name__ == '__main__':
-    # ghm = GHMCLoss(momentum=0.75)
-    # input_1 = tf.constant([[0.05, 0.25],[0.15, 0.65]], dtype=tf.float32) #
-    # target_1 = tf.constant([[1.0, 0.0], [0.0, 1.0]], dtype=tf.float32)
-    #
-    # input_2 = tf.constant([[0.75, 0.65], [0.85, 0.05]], dtype=tf.float32)
-    # target_2 = tf.constant([[1.0, 0.0], [0.0, 0.0]], dtype=tf.float32)
-    # with tf.Session() as sess:
-    #     init = tf.initialize_all_variables()
-    #     sess.run(init)
-    #     loss = ghm.calc(input_1, target_1)
-    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-    #     loss = ghm.calc(input_2, target_2)
-    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-    #     loss = ghm.calc(input_2, target_2)
-    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-    #     loss = ghm.calc(input_1, target_1)
-    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-    #     loss = ghm.calc(input_1, target_1)
-    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-    #
-    #     # loss = ghm.calc(input_1, target_1)
-    #     # print(sess.run([loss,ghm.g]))
-    #     # loss = ghm.calc(input_2, target_2)
-    #     # print(sess.run([loss,ghm.g]))
-    #     # loss = ghm.calc(input_2, target_2)
-    #     # print(sess.run([loss,ghm.g]))
-    #     # loss = ghm.calc(input_1, target_1)
-    #     # print(sess.run([loss,ghm.g]))
-    #     # loss = ghm.calc(input_1, target_1)
-    #     # print(sess.run([loss,ghm.g]))
+    ghm = GHMCLoss(momentum=0.75)
+    input_1 = tf.constant([[0.05, 0.25],[0.15, 0.65]], dtype=tf.float32) #
+    target_1 = tf.constant([[1.0, 0.0], [0.0, 1.0]], dtype=tf.float32)
+
+    input_2 = tf.constant([[0.75, 0.65], [0.85, 0.05]], dtype=tf.float32)
+    target_2 = tf.constant([[1.0, 0.0], [0.0, 0.0]], dtype=tf.float32)
+    with tf.Session() as sess:
+        init = tf.initialize_all_variables()
+        sess.run(init)
+        loss = ghm.calc(input_1, target_1)
+        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+        loss = ghm.calc(input_2, target_2)
+        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+        loss = ghm.calc(input_2, target_2)
+        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+        loss = ghm.calc(input_1, target_1)
+        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+        loss = ghm.calc(input_1, target_1)
+        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+
+        # loss = ghm.calc(input_1, target_1)
+        # print(sess.run([loss,ghm.g]))
+        # loss = ghm.calc(input_2, target_2)
+        # print(sess.run([loss,ghm.g]))
+        # loss = ghm.calc(input_2, target_2)
+        # print(sess.run([loss,ghm.g]))
+        # loss = ghm.calc(input_1, target_1)
+        # print(sess.run([loss,ghm.g]))
+        # loss = ghm.calc(input_1, target_1)
+        # print(sess.run([loss,ghm.g]))
 
     ghm_ = GHMC_Loss(momentum=0.75)
     input_1 = Variable(torch.torch.Tensor([[0.05,0.25],[0.15,0.65]]))
