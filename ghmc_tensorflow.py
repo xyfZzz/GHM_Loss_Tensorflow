@@ -1,54 +1,3 @@
-import torch
-import torch.nn.functional as F
-from torch.autograd import Variable
-
-class GHMC_Loss:
-    def __init__(self, bins=10, momentum=0.0):
-        self.bins = bins
-        self.momentum = momentum
-        self.edges = [float(x) / bins for x in range(bins+1)]
-        self.edges[-1] += 1e-6
-        if momentum > 0:
-            self.acc_sum = [0.0 for _ in range(bins)]
-
-    def calc(self, input, target, mask):
-        """ Args:
-        input [batch_num, class_num]:
-            The direct prediction of classification fc layer.
-        target [batch_num, class_num]:
-            Binary target (0 or 1) for each sample each class. The value is -1
-            when the sample is ignored.
-        """
-        edges = self.edges
-        mmt = self.momentum
-        weights = torch.zeros_like(input)
-
-        # gradient length
-        self.g = torch.abs(input.sigmoid().detach() - target)
-
-        valid = mask > 0
-        tot = max(valid.float().sum().item(), 1.0)
-        n = 0  # n valid bins
-        for i in range(self.bins):
-            inds = (self.g >= edges[i]) & (self.g < edges[i+1]) & valid
-            num_in_bin = inds.sum().item()
-            if num_in_bin > 0:
-                if mmt > 0:
-                    self.acc_sum[i] = mmt * self.acc_sum[i] \
-                        + (1 - mmt) * num_in_bin
-                    weights[inds] = tot / self.acc_sum[i]
-                else:
-                    weights[inds] = tot / num_in_bin
-                n += 1
-        if n > 0:
-            weights = weights / n
-
-        loss = F.binary_cross_entropy_with_logits(
-            input, target, weights, reduction='sum') / tot
-        return loss, self.acc_sum,self.g
-
-
-
 import tensorflow as tf
 
 
@@ -130,37 +79,87 @@ class GHMCLoss:
         loss = tf.reduce_sum(loss * weights) / tot
         return loss
 
+import torch
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+class GHMC_Loss:
+    def __init__(self, bins=10, momentum=0.0):
+        self.bins = bins
+        self.momentum = momentum
+        self.edges = [float(x) / bins for x in range(bins+1)]
+        self.edges[-1] += 1e-6
+        if momentum > 0:
+            self.acc_sum = [0.0 for _ in range(bins)]
+
+    def calc(self, input, target, mask):
+        """ Args:
+        input [batch_num, class_num]:
+            The direct prediction of classification fc layer.
+        target [batch_num, class_num]:
+            Binary target (0 or 1) for each sample each class. The value is -1
+            when the sample is ignored.
+        """
+        edges = self.edges
+        mmt = self.momentum
+        weights = torch.zeros_like(input)
+
+        # gradient length
+        self.g = torch.abs(input.sigmoid().detach() - target)
+
+        valid = mask > 0
+        tot = max(valid.float().sum().item(), 1.0)
+        n = 0  # n valid bins
+        for i in range(self.bins):
+            inds = (self.g >= edges[i]) & (self.g < edges[i+1]) & valid#如果维度不完全一致，会broadcast，但是这里作者应该是把它们输入为维度一致的
+            num_in_bin = inds.sum().item()
+            if num_in_bin > 0:
+                if mmt > 0:
+                    self.acc_sum[i] = mmt * self.acc_sum[i] \
+                        + (1 - mmt) * num_in_bin
+                    weights[inds] = tot / self.acc_sum[i]
+                else:
+                    weights[inds] = tot / num_in_bin
+                n += 1
+        if n > 0:
+            weights = weights / n
+
+        loss = F.binary_cross_entropy_with_logits(
+            input, target, weights, reduction='sum') / tot
+        return loss, self.acc_sum,self.g
+
+
 if __name__ == '__main__':
-    ghm = GHMCLoss(momentum=0.75)
-    input_1 = tf.constant([[0.05, 0.25],[0.15, 0.65]], dtype=tf.float32) #
-    target_1 = tf.constant([[1.0, 0.0], [0.0, 1.0]], dtype=tf.float32)
-
-    input_2 = tf.constant([[0.75, 0.65], [0.85, 0.05]], dtype=tf.float32)
-    target_2 = tf.constant([[1.0, 0.0], [0.0, 0.0]], dtype=tf.float32)
-    with tf.Session() as sess:
-        init = tf.initialize_all_variables()
-        sess.run(init)
-        loss = ghm.calc(input_1, target_1)
-        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-        loss = ghm.calc(input_2, target_2)
-        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-        loss = ghm.calc(input_2, target_2)
-        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-        loss = ghm.calc(input_1, target_1)
-        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-        loss = ghm.calc(input_1, target_1)
-        print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
-
-        # loss = ghm.calc(input_1, target_1)
-        # print(sess.run([loss,ghm.g]))
-        # loss = ghm.calc(input_2, target_2)
-        # print(sess.run([loss,ghm.g]))
-        # loss = ghm.calc(input_2, target_2)
-        # print(sess.run([loss,ghm.g]))
-        # loss = ghm.calc(input_1, target_1)
-        # print(sess.run([loss,ghm.g]))
-        # loss = ghm.calc(input_1, target_1)
-        # print(sess.run([loss,ghm.g]))
+    # ghm = GHMCLoss(momentum=0.75)
+    # input_1 = tf.constant([[0.05, 0.25],[0.15, 0.65]], dtype=tf.float32) #
+    # target_1 = tf.constant([[1.0, 0.0], [0.0, 1.0]], dtype=tf.float32)
+    #
+    # input_2 = tf.constant([[0.75, 0.65], [0.85, 0.05]], dtype=tf.float32)
+    # target_2 = tf.constant([[1.0, 0.0], [0.0, 0.0]], dtype=tf.float32)
+    # with tf.Session() as sess:
+    #     init = tf.initialize_all_variables()
+    #     sess.run(init)
+    #     loss = ghm.calc(input_1, target_1)
+    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+    #     loss = ghm.calc(input_2, target_2)
+    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+    #     loss = ghm.calc(input_2, target_2)
+    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+    #     loss = ghm.calc(input_1, target_1)
+    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+    #     loss = ghm.calc(input_1, target_1)
+    #     print(sess.run([loss,ghm.g,ghm.acc_sum_tmp]))
+    #
+    #     # loss = ghm.calc(input_1, target_1)
+    #     # print(sess.run([loss,ghm.g]))
+    #     # loss = ghm.calc(input_2, target_2)
+    #     # print(sess.run([loss,ghm.g]))
+    #     # loss = ghm.calc(input_2, target_2)
+    #     # print(sess.run([loss,ghm.g]))
+    #     # loss = ghm.calc(input_1, target_1)
+    #     # print(sess.run([loss,ghm.g]))
+    #     # loss = ghm.calc(input_1, target_1)
+    #     # print(sess.run([loss,ghm.g]))
 
     ghm_ = GHMC_Loss(momentum=0.75)
     input_1 = Variable(torch.torch.Tensor([[0.05,0.25],[0.15,0.65]]))
